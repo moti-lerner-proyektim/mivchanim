@@ -1,0 +1,185 @@
+<!--
+  מחוללי בחינות ומאגר שאלות בגרות – דף שער
+  חלק מ"לומדים בעצמי" · מוטי לרנר
+  הצהרת AI: קובץ זה נבנה בסיוע Claude (Anthropic).
+-->
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>מחוללי בחינות ומאגר שאלות בגרות — מוטי לרנר</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@500;700;900&family=Heebo:wght@300;400;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f6f0e3;
+    --panel:#efe6d3;
+    --panel-line:#ddd0b4;
+    --amber:#c47a0e;
+    --teal:#0e8d81;
+    --chalk:#2b2418;
+    --muted:#736a56;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--chalk);font-family:'Heebo',sans-serif;}
+
+  .topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 28px;border-bottom:1px solid var(--panel-line);}
+  .brand{font-family:'JetBrains Mono',monospace;font-size:13px;letter-spacing:1px;color:var(--muted);}
+  .brand a{color:inherit;text-decoration:none;}
+  .brand a:hover{color:var(--chalk);}
+  .brand b{color:var(--chalk);}
+  .brand .dot{color:var(--amber);}
+  .teacher-link{font-size:13px;font-weight:600;color:var(--muted);text-decoration:none;border:1px solid var(--panel-line);padding:6px 14px;border-radius:20px;}
+  .teacher-link:hover{color:var(--chalk);border-color:var(--teal);}
+
+  .hero{position:relative;overflow:hidden;background:linear-gradient(120deg,#2b2418 0%,#3d3221 55%,#123a37 100%);}
+  .hero-deco{position:absolute;inset:0;pointer-events:none;}
+  .hero-deco .bar{position:absolute;background:var(--amber);border-radius:6px;opacity:.9;}
+  .hero-deco .bar1{width:14px;height:70px;top:18px;left:-4px;transform:rotate(20deg);}
+  .hero-deco .bar2{width:14px;height:44px;top:96px;left:14px;transform:rotate(20deg);opacity:.55;}
+  .hero-deco .dot{position:absolute;border-radius:50%;}
+  .hero-deco .dot1{width:16px;height:16px;background:var(--teal);bottom:34px;left:120px;opacity:.85;}
+  .hero-deco .dot2{width:10px;height:10px;background:var(--amber);bottom:64px;left:70px;opacity:.7;}
+  .hero-deco .dot3{width:22px;height:22px;border:3px solid var(--teal);bottom:14px;left:210px;opacity:.6;}
+  .hero-inner{position:relative;max-width:1500px;margin:0 auto;padding:56px 28px 60px;}
+  .hero-eyebrow{font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:2px;color:#33d6c0;margin-bottom:16px;display:flex;align-items:center;gap:9px;}
+  .hero-eyebrow::before{content:"";width:8px;height:8px;border-radius:50%;background:#33d6c0;box-shadow:0 0 0 3px rgba(51,214,192,.18);}
+  .hero h1{font-family:'Frank Ruhl Libre',serif;font-weight:900;font-size:clamp(32px,5.4vw,56px);line-height:1.2;margin:0 0 16px;color:#f8f5ee;}
+  .hero h1 .accent{color:#ffb020;}
+  .hero p{font-size:17px;font-weight:300;color:#e4dcc8;max-width:58ch;line-height:1.8;margin:0;}
+
+  .wrap{max-width:1500px;margin:0 auto;padding:52px 28px 80px;}
+  .section-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:26px;gap:12px;flex-wrap:wrap;}
+  .section-title{font-family:'Frank Ruhl Libre',serif;font-weight:700;font-size:24px;display:flex;align-items:center;gap:12px;}
+  .section-title::before{content:"";width:4px;height:24px;background:var(--teal);border-radius:2px;}
+  .result-count{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);}
+
+  .cards{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;}
+  @media(max-width:1100px){ .cards{grid-template-columns:1fr 1fr;} }
+  @media(max-width:600px){ .cards{grid-template-columns:1fr;} }
+
+  .card{background:var(--panel);border:1px solid var(--panel-line);border-radius:14px;overflow:hidden;text-decoration:none;color:var(--chalk);
+    transition:transform .18s,border-color .18s;display:flex;flex-direction:column;}
+  .card:hover{transform:translateY(-4px);border-color:var(--teal);}
+  .card:focus-visible{outline:2px solid var(--teal);outline-offset:2px;}
+  .card-media{position:relative;aspect-ratio:16/9;overflow:hidden;display:flex;align-items:center;justify-content:center;}
+  .card-media .big{font-family:'Frank Ruhl Libre',serif;font-weight:900;font-size:76px;color:rgba(255,255,255,.95);line-height:1;position:relative;z-index:1;text-shadow:0 4px 18px rgba(0,0,0,.25);}
+  .card-media .big small{display:block;font-family:'Heebo',sans-serif;font-weight:600;font-size:14px;letter-spacing:1px;text-align:center;margin-top:6px;opacity:.9;}
+  .card-media svg.deco{position:absolute;inset:0;width:100%;height:100%;opacity:.28;}
+  .g9  .card-media{background:linear-gradient(135deg,#0e9488,#123a37);}
+  .g10 .card-media{background:linear-gradient(135deg,#d98c0e,#6e4a12);}
+  .g11 .card-media{background:linear-gradient(135deg,#6c5ce7,#35297a);}
+  .gb  .card-media{background:linear-gradient(135deg,#ff6f61,#a53b2f);}
+  .card-tag{position:absolute;top:12px;right:12px;z-index:2;background:rgba(11,15,20,.55);border:1px solid rgba(255,255,255,.25);
+    font-family:'JetBrains Mono',monospace;font-size:11px;color:#f5f6f8;padding:5px 11px;border-radius:20px;}
+  .card-body{padding:20px 22px 22px;display:flex;flex-direction:column;gap:10px;flex:1;}
+  .card-title{font-family:'Frank Ruhl Libre',serif;font-weight:700;font-size:20px;line-height:1.4;}
+  .card-desc{font-size:14px;line-height:1.75;color:var(--muted);flex:1;}
+  .card-footer{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding-top:12px;border-top:1px solid var(--panel-line);
+    font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--muted);}
+  .card-footer span{display:flex;align-items:center;gap:5px;}
+  .card-footer svg{width:14px;height:14px;color:var(--teal);}
+  .card-cta{font-family:'Heebo',sans-serif;font-weight:700;color:var(--teal);font-size:15px;}
+
+  .how{margin-top:44px;display:grid;grid-template-columns:repeat(3,1fr);gap:18px;}
+  @media(max-width:900px){ .how{grid-template-columns:1fr;} }
+  .how div{background:#fbf7ee;border:1px solid var(--panel-line);border-radius:14px;padding:18px 20px;font-size:14px;line-height:1.7;color:var(--muted);}
+  .how b{display:block;font-family:'Frank Ruhl Libre',serif;font-size:17px;color:var(--chalk);margin-bottom:4px;}
+
+  footer{margin-top:64px;padding-top:22px;border-top:1px solid var(--panel-line);color:var(--muted);font-size:12px;line-height:1.9;text-align:center;}
+  footer a{color:var(--muted);}
+</style>
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="brand"><a href="https://moti-lerner-proyektim.github.io/"><b>לומדים בעצמי</b> <span class="dot">·</span> מוטי לרנר</a></div>
+    <a class="teacher-link" href="teacher.html">כניסת מורה</a>
+  </div>
+
+  <div class="hero">
+    <div class="hero-deco"><div class="bar bar1"></div><div class="bar bar2"></div><div class="dot dot1"></div><div class="dot dot2"></div><div class="dot dot3"></div></div>
+    <div class="hero-inner">
+      <div class="hero-eyebrow">מבחנים ותרגול</div>
+      <h1>מחוללי בחינות <span class="accent">ומאגר שאלות בגרות</span></h1>
+      <p>בחרו את השכבה שלכם, היכנסו עם שם, כיתה ותעודת זהות, וענו על המבחן. לכל תלמיד סדר שאלות ותשובות משלו, והציון מתקבל מיד בסיום.</p>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="section-head">
+      <div class="section-title">בחרו שכבה</div>
+      <div class="result-count">4 נושאים</div>
+    </div>
+
+    <div class="cards">
+
+      <a class="card g9" href="exam.html?grade=9">
+        <div class="card-media">
+          <svg class="deco" viewBox="0 0 160 90" preserveAspectRatio="none" aria-hidden="true"><path d="M0 70 Q40 40 80 60 T160 45" fill="none" stroke="#fff" stroke-width="1.5"/><circle cx="30" cy="22" r="9" fill="none" stroke="#fff"/><circle cx="135" cy="70" r="5" fill="#fff"/></svg>
+          <div class="card-tag">מחולל בחינות</div>
+          <div class="big">ט׳<small>כיתה</small></div>
+        </div>
+        <div class="card-body">
+          <div class="card-title">מחולל בחינות — כיתה ט׳</div>
+          <div class="card-desc">מבחנים ובחנים לכיתה ט׳: רב ברירה, השלמה, נכון / לא נכון והעברת חיצים.</div>
+          <div class="card-footer"><span class="card-cta">כניסה למבחן ←</span></div>
+        </div>
+      </a>
+
+      <a class="card g10" href="exam.html?grade=10">
+        <div class="card-media">
+          <svg class="deco" viewBox="0 0 160 90" preserveAspectRatio="none" aria-hidden="true"><path d="M10 80 L50 30 L90 55 L150 15" fill="none" stroke="#fff" stroke-width="1.5"/><rect x="118" y="58" width="18" height="18" fill="none" stroke="#fff"/><circle cx="50" cy="30" r="4" fill="#fff"/></svg>
+          <div class="card-tag">מחולל בחינות</div>
+          <div class="big">י׳<small>כיתה</small></div>
+        </div>
+        <div class="card-body">
+          <div class="card-title">מחולל בחינות — כיתה י׳</div>
+          <div class="card-desc">מבחנים בתקשוב לכיתה י׳: מבוא לתקשורת, מערכות הפעלה, פאקטריסר, פרוטוקולים ושיטות מספור.</div>
+          <div class="card-footer"><span class="card-cta">כניסה למבחן ←</span></div>
+        </div>
+      </a>
+
+      <a class="card g11" href="exam.html?grade=11">
+        <div class="card-media">
+          <svg class="deco" viewBox="0 0 160 90" preserveAspectRatio="none" aria-hidden="true"><circle cx="40" cy="45" r="6" fill="#fff"/><circle cx="120" cy="25" r="6" fill="#fff"/><circle cx="120" cy="70" r="6" fill="#fff"/><path d="M40 45 L120 25 M40 45 L120 70 M120 25 L120 70" stroke="#fff" stroke-width="1.5"/></svg>
+          <div class="card-tag">מחולל בחינות</div>
+          <div class="big">יא׳<small>כיתה</small></div>
+        </div>
+        <div class="card-body">
+          <div class="card-title">מחולל בחינות — כיתה יא׳</div>
+          <div class="card-desc">מבחנים בתקשוב לכיתה יא׳, כולל חומר כיתה י׳ ויחידות מתקדמות, לקראת הבגרות.</div>
+          <div class="card-footer"><span class="card-cta">כניסה למבחן ←</span></div>
+        </div>
+      </a>
+
+      <a class="card gb" href="exam.html?grade=bagrut">
+        <div class="card-media">
+          <svg class="deco" viewBox="0 0 160 90" preserveAspectRatio="none" aria-hidden="true"><rect x="20" y="18" width="40" height="54" rx="3" fill="none" stroke="#fff"/><path d="M28 32 H52 M28 42 H52 M28 52 H44" stroke="#fff"/><path d="M110 60 l10 10 l22 -26" fill="none" stroke="#fff" stroke-width="2"/></svg>
+          <div class="card-tag">מאגר שאלות</div>
+          <div class="big">בגרות<small>תקשוב</small></div>
+        </div>
+        <div class="card-body">
+          <div class="card-title">מאגר שאלות לבגרות בתקשוב</div>
+          <div class="card-desc">אוסף שאלות בסגנון בחינת הבגרות בתקשוב, לתרגול ולהכנה לבחינה.</div>
+          <div class="card-footer"><span class="card-cta">כניסה למאגר ←</span></div>
+        </div>
+      </a>
+
+    </div>
+
+    <div class="how">
+      <div><b>1 · נכנסים</b>בוחרים שכבה ומבחן, וממלאים שם, כיתה ותעודת זהות.</div>
+      <div><b>2 · עונים</b>לכל תלמיד סדר שאלות ותשובות אחר. התשובות נשמרות גם אם הדף מתרענן.</div>
+      <div><b>3 · מקבלים ציון</b>הבדיקה אוטומטית, והציון מופיע מיד אחרי ההגשה.</div>
+    </div>
+
+    <footer>
+      חלק מאתר <a href="https://moti-lerner-proyektim.github.io/">לומדים בעצמי</a> · מוטי לרנר<br>
+      פרויקט גמר · קורס שימוש בבינה מלאכותית ופיתוח יישומי בינה מלאכותית · ד"ר ישי מור · המכללה האקדמית בית ברל
+    </footer>
+  </div>
+
+</body>
+</html>

@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>מחולל בחינות</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand" id="brand"><a href="index.html" class="home-link" title="לכל השכבות">מחוללי <span>בחינות</span></a> <span id="gradeLabel" class="grade-chip hidden"></span></div>
+  <div class="meta" id="examMeta"></div>
+</header>
+
+<main class="wrap">
+  <div id="demoBanner" class="demo-banner hidden">מצב הדגמה: התוצאות נשמרות רק בדפדפן הזה. כדי לחבר לגיליון Google ראו את מדריך ההתקנה.</div>
+
+  <!-- כניסה -->
+  <section id="loginView" class="card center-card">
+    <h1>כניסה למבחן</h1>
+    <p class="muted">מלאו את הפרטים ולחצו "התחלת המבחן".</p>
+    <form id="loginForm" novalidate>
+      <div id="examPick">
+        <label for="exam">מבחן</label>
+        <select id="exam" required><option value="">טוען…</option></select>
+      </div>
+      <label for="name">שם מלא</label>
+      <input type="text" id="name" autocomplete="name" required>
+      <label for="cls">כיתה</label>
+      <div id="clsWrap"><input type="text" id="cls" required></div>
+      <label for="sid">תעודת זהות</label>
+      <input type="text" id="sid" inputmode="numeric" maxlength="9" autocomplete="off" required>
+      <div class="hint">9 ספרות, כולל ספרת ביקורת</div>
+      <div id="loginError" class="error hidden" role="alert"></div>
+      <button class="btn gold block" id="startBtn" type="submit">התחלת המבחן</button>
+    </form>
+  </section>
+
+  <!-- מבחן -->
+  <section id="examView" class="hidden">
+    <h1 id="examTitle"></h1>
+    <p class="muted" id="examInfo"></p>
+    <div class="progress"><div id="progressBar"></div></div>
+    <div id="questions"></div>
+    <div id="submitError" class="error hidden" role="alert"></div>
+    <button class="btn gold block" id="submitBtn" type="button">הגשת המבחן</button>
+  </section>
+
+  <!-- תוצאה -->
+  <section id="resultView" class="card result hidden">
+    <h1>המבחן הוגש</h1>
+    <p id="resultName" class="muted"></p>
+    <div class="score-ring" id="scoreRing" style="--p:0"><b id="scoreNum">0</b></div>
+    <p id="resultMsg"></p>
+  </section>
+</main>
+
+<div id="confirmModal" class="modal-bg hidden" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
+  <div class="modal">
+    <h2 id="confirmTitle">להגיש את המבחן?</h2>
+    <p id="confirmText"></p>
+    <div class="modal-actions">
+      <button class="btn gold" id="confirmYes">כן, להגיש</button>
+      <button class="btn ghost" id="confirmNo">חזרה למבחן</button>
+    </div>
+  </div>
+</div>
+
+<div id="lightbox" class="lightbox hidden" role="dialog" aria-label="תמונה מוגדלת"><img id="lightboxImg" alt=""></div>
+
+<script src="js/config.js"></script>
+<script src="js/core.js"></script>
+<script src="js/google-shim.js"></script>
+<script src="js/api.js"></script>
+<script src="js/student.js"></script>
+</body>
+</html>

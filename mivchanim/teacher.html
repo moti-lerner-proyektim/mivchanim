@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>ממשק מורה – מחוללי בחינות</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">ממשק <span>מורה</span></div>
+  <div class="meta"><a href="index.html" style="color:#E4DCC8">דף הבית</a><button id="logoutBtn" class="btn ghost small hidden" style="color:#F7F4EC;border-color:#5A4C33">יציאה</button></div>
+</header>
+
+<main class="wrap wide">
+  <div id="demoBanner" class="demo-banner hidden">מצב הדגמה: הנתונים נשמרים רק בדפדפן הזה. סיסמת ההדגמה: 1234. <button id="resetDemo" class="btn ghost small">איפוס נתוני ההדגמה</button></div>
+
+  <section id="loginView" class="card center-card">
+    <h1>כניסת מורה</h1>
+    <form id="loginForm">
+      <label for="pw">סיסמה</label>
+      <input type="password" id="pw" autocomplete="current-password" required>
+      <div id="loginError" class="error hidden" role="alert"></div>
+      <button class="btn block" type="submit" id="loginBtn">כניסה</button>
+    </form>
+  </section>
+
+  <section id="appView" class="hidden">
+    <nav class="tabs" role="tablist">
+      <button class="tab active" data-tab="exams" role="tab">מבחנים</button>
+      <button class="tab" data-tab="questions" role="tab">שאלות</button>
+      <button class="tab" data-tab="results" role="tab">תוצאות</button>
+      <button class="tab" data-tab="settings" role="tab">הגדרות</button>
+    </nav>
+
+    <!-- מבחנים -->
+    <div id="tab-exams">
+      <div class="card">
+        <div class="row" style="align-items:center">
+          <h2 style="margin:0">המבחנים שלי</h2>
+          <div style="flex:0 0 auto;display:flex;gap:8px;align-items:center">
+            <select id="gradeFilter" aria-label="סינון לפי שכבה" style="width:auto">
+              <option value="">כל השכבות</option>
+              <option value="ט">כיתה ט׳</option>
+              <option value="י">כיתה י׳</option>
+              <option value="יא">כיתה יא׳</option>
+              <option value="בגרות">בגרות</option>
+            </select>
+            <button class="btn gold" id="newExamBtn">+ מבחן חדש</button>
+          </div>
+        </div>
+        <div id="examList"></div>
+      </div>
+    </div>
+
+    <!-- שאלות -->
+    <div id="tab-questions" class="hidden">
+      <div class="card">
+        <div class="row" style="align-items:end">
+          <div><label for="qExam">מבחן</label><select id="qExam"></select></div>
+          <div style="flex:0 0 auto;display:flex;gap:12px;align-items:center">
+            <span class="counter" id="qCounter"></span>
+            <button class="btn gold" id="newQBtn">+ שאלה חדשה</button>
+          </div>
+        </div>
+        <p class="muted" id="qSummary" style="margin-top:12px"></p>
+        <div id="questionList"></div>
+      </div>
+    </div>
+
+    <!-- תוצאות -->
+    <div id="tab-results" class="hidden">
+      <div class="card">
+        <div class="row" style="align-items:end">
+          <div><label for="rExam">מבחן</label><select id="rExam"></select></div>
+          <div><label for="rClass">כיתה</label><select id="rClass"><option value="">כל הכיתות</option></select></div>
+          <div style="flex:0 0 auto;display:flex;gap:8px">
+            <button class="btn ghost" id="refreshResults">רענון</button>
+            <button class="btn" id="exportCsv">ייצוא לאקסל (CSV)</button>
+          </div>
+        </div>
+        <div class="stats" id="stats" style="margin-top:18px"></div>
+        <div class="table-wrap"><table class="data" id="resultsTable"></table></div>
+      </div>
+    </div>
+
+    <!-- הגדרות -->
+    <div id="tab-settings" class="hidden">
+      <div class="card" style="max-width:520px">
+        <h2>שינוי סיסמה</h2>
+        <form id="pwForm">
+          <label for="newPw">סיסמה חדשה</label>
+          <input type="password" id="newPw" minlength="4" required autocomplete="new-password">
+          <label for="newPw2">אימות סיסמה</label>
+          <input type="password" id="newPw2" minlength="4" required autocomplete="new-password">
+          <div id="pwMsg" class="hidden"></div>
+          <button class="btn block" type="submit">שמירה</button>
+        </form>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- חלון עריכת מבחן -->
+<div id="examModal" class="modal-bg hidden" role="dialog" aria-modal="true" aria-labelledby="examModalTitle">
+  <form class="modal" id="examForm">
+    <h2 id="examModalTitle">מבחן</h2>
+    <label for="exTitle">שם המבחן</label>
+    <input type="text" id="exTitle" required>
+    <label for="exGrade">שכבה</label>
+    <select id="exGrade" required>
+      <option value="">בחרו שכבה</option>
+      <option value="ט">כיתה ט׳</option>
+      <option value="י">כיתה י׳</option>
+      <option value="יא">כיתה יא׳</option>
+      <option value="בגרות">מאגר שאלות לבגרות</option>
+    </select>
+    <div class="row">
+      <div><label for="exTime">זמן (דקות)</label><input type="number" id="exTime" min="0" value="0"><div class="hint">0 = ללא הגבלה</div></div>
+      <div><label for="exDraw">מספר שאלות לתלמיד</label><input type="number" id="exDraw" min="0" max="40" value="0"><div class="hint">0 = כל השאלות. אחרת: הגרלה מהמאגר</div></div>
+    </div>
+    <label for="exClasses">כיתות</label>
+    <input type="text" id="exClasses" placeholder="י1, י2, יא1">
+    <div class="hint">מופרדות בפסיקים. ריק = התלמיד מקליד כיתה בעצמו</div>
+    <label class="check"><input type="checkbox" id="exOpen"> המבחן פתוח לתלמידים</label>
+    <label class="check"><input type="checkbox" id="exRetake"> לאפשר הגשה חוזרת באותה תעודת זהות</label>
+    <div id="examError" class="error hidden"></div>
+    <div class="modal-actions">
+      <button class="btn gold" type="submit">שמירה</button>
+      <button class="btn ghost" type="button" data-close>ביטול</button>
+    </div>
+  </form>
+</div>
+
+<!-- חלון עריכת שאלה -->
+<div id="qModal" class="modal-bg hidden" role="dialog" aria-modal="true" aria-labelledby="qModalTitle">
+  <form class="modal" id="qForm" novalidate>
+    <h2 id="qModalTitle">שאלה</h2>
+    <label>סוג השאלה</label>
+    <div class="type-picker" id="typePicker">
+      <button type="button" data-type="mc">א. רב ברירה<small>2–6 תשובות</small></button>
+      <button type="button" data-type="fill">ב. השלמה<small>עד 5 חלונות בשורה</small></button>
+      <button type="button" data-type="tf">ג. נכון / לא נכון<small>משפט אחד</small></button>
+      <button type="button" data-type="match">ד. העברת חיצים<small>2–8 זוגות</small></button>
+    </div>
+
+    <label for="qText" id="qTextLabel">נוסח השאלה</label>
+    <textarea id="qText" required></textarea>
+    <div class="hint" id="qTextHint"></div>
+    <div id="fillTools" class="hidden" style="margin-top:6px">
+      <button type="button" class="btn ghost small" id="insertBlank">+ חלון השלמה ___</button>
+      <div id="lineWarn" class="line-warn hidden"></div>
+    </div>
+
+    <label>תמונה <span class="muted">(לא חובה)</span></label>
+    <div class="img-box">
+      <img id="imgPreview" class="hidden" alt="תצוגה מקדימה של התמונה">
+      <div class="img-actions">
+        <span class="btn ghost small file-btn">בחירת קובץ<input type="file" id="imgFile" accept="image/png,image/jpeg,image/gif,image/webp"></span>
+        <input type="text" id="imgUrl" placeholder="או הדביקו קישור לתמונה (https://…)" dir="ltr">
+        <button type="button" class="btn danger small hidden" id="imgRemove">הסרה</button>
+      </div>
+      <div class="hint" id="imgStatus"></div>
+    </div>
+
+    <div id="mcFields" class="type-fields">
+      <label>תשובות <span class="muted">(סמנו בעיגול את הנכונה)</span></label>
+      <div id="optEditor"></div>
+      <button class="btn ghost small" type="button" id="addOpt">+ תשובה</button>
+    </div>
+
+    <div id="fillFields" class="type-fields hidden">
+      <label>תשובות נכונות לכל חלון</label>
+      <div class="hint">אפשר כמה תשובות נכונות לחלון, מופרדות ב- / (למשל: DHCP / dhcp server). הבדיקה מתעלמת מרווחים, אותיות גדולות/קטנות, ניקוד ואותיות סופיות.</div>
+      <div id="blankEditor"></div>
+    </div>
+
+    <div id="tfFields" class="type-fields hidden">
+      <label>התשובה הנכונה</label>
+      <div class="tf-row">
+        <label class="opt tf"><input type="radio" name="tfCorrect" value="true"><span class="t">נכון</span></label>
+        <label class="opt tf"><input type="radio" name="tfCorrect" value="false"><span class="t">לא נכון</span></label>
+      </div>
+    </div>
+
+    <div id="matchFields" class="type-fields hidden">
+      <label>זוגות מתאימים</label>
+      <div class="hint">אצל התלמיד שני הטורים יעורבבו, והוא יחבר בקו כל פריט מימין לפריט המתאים משמאל.</div>
+      <div id="pairEditor"></div>
+      <button class="btn ghost small" type="button" id="addPair">+ זוג</button>
+    </div>
+
+    <div class="row">
+      <div style="flex:0 1 160px"><label for="qPoints">ניקוד</label><input type="number" id="qPoints" min="1" value="10"></div>
+    </div>
+    <div class="hint" id="partialHint"></div>
+    <div id="qError" class="error hidden" role="alert"></div>
+    <div class="modal-actions">
+      <button class="btn gold" type="submit" id="qSave">שמירה</button>
+      <button class="btn ghost" type="button" data-close>ביטול</button>
+    </div>
+  </form>
+</div>
+
+<script src="js/config.js"></script>
+<script src="js/google-shim.js"></script>
+<script src="js/api.js"></script>
+<script src="js/teacher.js"></script>
+</body>
+</html>
