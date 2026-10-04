@@ -1,10 +1,4 @@
-/*
- * הגדרות האתר
- * ------------
- * API_URL: כתובת ה-Web App של Google Apps Script (מסתיימת ב-/exec).
- * כל עוד השדה ריק, האתר עובד ב"מצב הדגמה": הנתונים נשמרים רק בדפדפן הזה.
- */
 window.EXAM_CONFIG = {
-  API_URL: '',
-  SCHOOL_NAME: 'מחולל בחינות'
+  API_URL: 'https://script.google.com/macros/s/AKfycbyG0zlBDXhFbK3gtMs300noWOPAm0B4hmb4dOPnZM1tQqJpGkQBml4c77rFGgupDaT6/exec',
+  SCHOOL_NAME: 'מחוללי בחינות'
 };
