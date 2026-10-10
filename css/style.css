@@ -233,3 +233,14 @@ table.data td.num, table.data th.num { text-align: center; font-variant-numeric:
 .fill-text input.blank-input { background: #FCF1DC; }
 .fill-text input.blank-input:focus { background: #F8E3BC; }
 .topbar .brand .grade-chip { color: #fff; }
+
+/* תצוגת תלמיד למורה */
+.preview-banner { background: #E7F4F2; border-color: #9FD3CC; color: #0B5F57; }
+.pv-actions { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin: 18px 0 8px; }
+.pv-list { list-style: none; padding: 0; margin: 18px 0 0; text-align: right; display: grid; gap: 8px; }
+.pv-row { border: 1px solid var(--line, #E2D6BE); border-inline-start: 5px solid #1B8A5A; border-radius: 10px; padding: 10px 14px; background: #fff; }
+.pv-row.part { border-inline-start-color: #C9871F; }
+.pv-row.bad { border-inline-start-color: #B3261E; }
+.pv-top { display: flex; justify-content: space-between; gap: 12px; }
+.pv-q { margin-top: 4px; }
+.pv-a { margin-top: 6px; color: #0B5F57; font-size: .95em; }
