@@ -48,6 +48,8 @@
               <option value="בגרות">בגרות</option>
             </select>
             <button class="btn gold" id="newExamBtn">+ מבחן חדש</button>
+            <button class="btn ghost" id="importExamBtn" title="ייבוא מבחן מוכן עם כל השאלות מקובץ JSON">ייבוא מקובץ</button>
+            <input type="file" id="importExamFile" accept=".json,application/json" class="hidden">
           </div>
         </div>
         <div id="examList"></div>
@@ -206,6 +208,7 @@
 <script src="js/config.js"></script>
 <script src="js/google-shim.js"></script>
 <script src="js/api.js"></script>
+<script src="js/core.js"></script>
 <script src="js/teacher.js"></script>
 </body>
 </html>
