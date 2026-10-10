@@ -45,6 +45,8 @@
     document.querySelectorAll('.tab').forEach(function (b) { b.onclick = function () { switchTab(b.dataset.tab); }; });
     document.querySelectorAll('[data-close]').forEach(function (b) { b.onclick = function () { b.closest('.modal-bg').classList.add('hidden'); }; });
     $('newExamBtn').onclick = function () { openExam(null); };
+    $('importExamBtn').onclick = function () { $('importExamFile').click(); };
+    $('importExamFile').onchange = importExamFile;
     $('gradeFilter').onchange = renderExams;
     $('examForm').onsubmit = saveExam;
     $('newQBtn').onclick = function () { openQuestion(null, lastType); };
@@ -418,6 +420,63 @@
       $('qModal').classList.add('hidden');
       return refresh().then(function () { toast('השאלה נשמרה'); });
     }).catch(function (er) { err(er.message); }).then(function () { btn.disabled = false; });
+  }
+
+  /* ---------- ייבוא מבחן מקובץ JSON ---------- */
+  function importExamFile() {
+    var f = this.files && this.files[0]; this.value = '';
+    if (!f) return;
+    var reader = new FileReader();
+    reader.onload = function () {
+      var pack;
+      try { pack = JSON.parse(String(reader.result).replace(/^﻿/, '')); } catch (e) { return toast('הקובץ אינו JSON תקין'); }
+      try { pack = checkImport(pack); } catch (e) { return alert('לא ניתן לייבא את הקובץ:\n' + e.message); }
+      var x = pack.exam, total = pack.questions.reduce(function (a, q) { return a + Number(q.points); }, 0);
+      if (!confirm('לייבא את "' + x.title + '"?\n' + (GRADE_NAMES[x.grade] || x.grade) + ' · ' + pack.questions.length + ' שאלות · ' + total + ' נקודות.\nהמבחן ייווצר סגור, ותוכלו לבדוק אותו לפני הפתיחה.')) return;
+      runImport(pack);
+    };
+    reader.readAsText(f, 'utf-8');
+  }
+
+  function checkImport(pack) {
+    if (!pack || typeof pack !== 'object' || !pack.exam || !Array.isArray(pack.questions)) throw new Error('חסרים השדות exam ו-questions');
+    var x = pack.exam;
+    if (!String(x.title || '').trim()) throw new Error('חסרה כותרת למבחן');
+    if (!GRADE_NAMES[x.grade]) throw new Error('שכבה לא מוכרת: ' + x.grade + ' (ט / י / יא / בגרות)');
+    if (!pack.questions.length) throw new Error('אין שאלות בקובץ');
+    if (pack.questions.length > MAX_Q) throw new Error('יש ' + pack.questions.length + ' שאלות. המקסימום הוא ' + MAX_Q);
+    pack.questions.forEach(function (q, i) {
+      if (typeof validateQuestion !== 'function') return;
+      try { validateQuestion(q); } catch (e) { throw new Error('שאלה ' + (i + 1) + ': ' + e.message); }
+    });
+    return pack;
+  }
+
+  function runImport(pack) {
+    var x = pack.exam, n = pack.questions.length, btn = $('importExamBtn');
+    var exam = { id: '', title: String(x.title).trim(), grade: x.grade, timeLimit: Number(x.timeLimit) || 0,
+      drawCount: Number(x.drawCount) || 0, classes: String(x.classes || ''), open: false, allowRetake: !!x.allowRetake };
+    btn.disabled = true; toast('יוצר את המבחן…');
+    var examId = null, done = 0;
+    api('tSaveExam', { exam: exam }).then(function (id) {
+      examId = id;
+      return pack.questions.reduce(function (p, q, i) {
+        return p.then(function () {
+          var question = Object.assign({}, q, { qid: '', examId: id, image: q.image || '' });
+          return api('tSaveQuestion', { question: question }).then(function () {
+            done++; toast('מייבא שאלות… ' + done + ' / ' + n);
+          }, function (e) { throw new Error('שאלה ' + (i + 1) + ': ' + e.message); });
+        });
+      }, Promise.resolve());
+    }).then(function () {
+      return refresh().then(function () {
+        $('qExam').value = examId; renderQuestions(); switchTab('questions');
+        toast('המבחן יובא: ' + n + ' שאלות. הוא סגור עד שתלחצו "פתיחה".');
+      });
+    }).catch(function (e) {
+      refresh();
+      alert('הייבוא נעצר: ' + e.message + (examId ? '\nנשמרו ' + done + ' מתוך ' + n + ' שאלות. אפשר למחוק את המבחן ולייבא שוב.' : ''));
+    }).then(function () { btn.disabled = false; });
   }
 
   /* ---------- תוצאות ---------- */
