@@ -112,6 +112,7 @@
         (x.classes ? ' · כיתות: ' + esc(x.classes) : '') + (x.allowRetake ? ' · הגשה חוזרת מותרת' : '') + '</span></div>' +
         '<div class="actions">' +
         '<button class="btn small ' + (x.open ? 'ghost' : 'gold') + '" data-act="toggle" data-id="' + esc(x.id) + '">' + (x.open ? 'סגירה' : 'פתיחה') + '</button>' +
+        '<button class="btn small ghost" data-act="preview" data-id="' + esc(x.id) + '" title="פותח את המבחן בלשונית חדשה כפי שהתלמיד רואה אותו. שום דבר לא נשמר.">תצוגת תלמיד</button>' +
         '<button class="btn small ghost" data-act="link" data-id="' + esc(x.id) + '">העתקת קישור</button>' +
         '<button class="btn small ghost" data-act="questions" data-id="' + esc(x.id) + '">שאלות</button>' +
         '<button class="btn small ghost" data-act="edit" data-id="' + esc(x.id) + '">עריכה</button>' +
@@ -124,6 +125,7 @@
       if (b.dataset.act === 'edit') openExam(x);
       if (b.dataset.act === 'questions') { $('qExam').value = x.id; renderQuestions(); switchTab('questions'); }
       if (b.dataset.act === 'link') copy(studentLink(x.id));
+      if (b.dataset.act === 'preview') previewExam(x);
       if (b.dataset.act === 'toggle') {
         if (!x.open && !qCount(x.id)) return toast('אין שאלות במבחן. הוסיפו שאלות לפני הפתיחה.');
         api('tSaveExam', { exam: Object.assign({}, x, { open: !x.open }) }).then(refresh).then(function () { toast(x.open ? 'המבחן נסגר' : 'המבחן פתוח לתלמידים'); }).catch(fail);
@@ -133,6 +135,19 @@
         api('tDeleteExam', { examId: x.id }).then(refresh).then(function () { toast('המבחן נמחק'); }).catch(fail);
       }
     };
+  }
+
+  /* ---------- תצוגת תלמיד (תצוגה מקדימה למורה, בלי שמירה) ---------- */
+  function previewExam(x) {
+    var pool = data.questions.filter(function (q) { return q.examId === x.id; });
+    if (!pool.length) return toast('אין שאלות במבחן. הוסיפו שאלות לפני התצוגה.');
+    var pack = { exam: { id: x.id, title: x.title, timeLimit: x.timeLimit, drawCount: x.drawCount, grade: x.grade }, pool: pool, at: Date.now() };
+    try {
+      localStorage.setItem('examgen-preview', JSON.stringify(pack));
+      sessionStorage.removeItem('examgen-preview-active');
+    } catch (e) { return toast('הדפדפן חוסם אחסון מקומי, ולכן אי אפשר לפתוח תצוגה'); }
+    var w = window.open('exam.html?preview=1', '_blank');
+    if (!w) location.href = 'exam.html?preview=1';
   }
 
   function copy(text) {

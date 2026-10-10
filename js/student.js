@@ -1,7 +1,8 @@
 /* דף התלמיד: כניסה, מבחן מעורבב (4 סוגי שאלות), הגשה וציון */
 (function () {
   var $ = function (id) { return document.getElementById(id); };
-  var SESSION_KEY = 'examgen-active';
+  var PREVIEW = new URLSearchParams(location.search).get('preview') === '1';
+  var SESSION_KEY = PREVIEW ? 'examgen-preview-active' : 'examgen-active';
   var LETTERS = ['א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ז', 'ח'];
   var exams = [];
   var state = null; // { token, title, timeLimit, questions, answers, start, name, cls }
@@ -40,6 +41,8 @@
     if (ExamAPI.isDemo()) $('demoBanner').classList.remove('hidden');
     $('lightbox').onclick = function () { this.classList.add('hidden'); };
 
+    if (PREVIEW) return startPreview();
+
     var saved = loadSession();
     if (saved && saved.token) { state = saved; renderExam(); return; }
 
@@ -62,6 +65,56 @@
     $('exam').addEventListener('change', onExamChange);
     $('loginForm').addEventListener('submit', onStart);
     $('sid').addEventListener('input', function () { this.value = this.value.replace(/\D/g, '').slice(0, 9); });
+  }
+
+  /* ---------- תצוגת תלמיד למורה: הכול רץ בדפדפן, שום דבר לא נשלח לשרת ---------- */
+  function startPreview() {
+    document.title = 'תצוגת תלמיד · מחולל בחינות';
+    var banner = $('demoBanner');
+    banner.innerHTML = '<b>תצוגת תלמיד למורה.</b> כך התלמיד רואה את המבחן (סדר השאלות והתשובות מתערבב בכל פתיחה). אפשר לענות ולהגיש; שום דבר לא נשמר בגיליון.';
+    banner.classList.add('preview-banner'); banner.classList.remove('hidden');
+    var saved = loadSession();
+    if (saved && saved.token === 'preview') { state = saved; renderExam(); return; }
+    var pack = null;
+    try { pack = JSON.parse(localStorage.getItem('examgen-preview')); } catch (e) {}
+    if (!pack || !pack.pool || !pack.pool.length) {
+      $('loginView').innerHTML = '<h1>תצוגת תלמיד</h1><p class="muted">לא נמצא מבחן לתצוגה. חזרו לממשק המורה ולחצו "תצוגת תלמיד" ליד המבחן.</p>';
+      return;
+    }
+    var built = buildStudentExam(pack.pool, Number(pack.exam.drawCount) || 0, Math.random);
+    var used = pack.pool.filter(function (q) { return built.qids.indexOf(q.qid) !== -1; });
+    state = { token: 'preview', title: pack.exam.title, timeLimit: Number(pack.exam.timeLimit) || 0, questions: built.questions,
+      answers: {}, start: Date.now(), name: 'תצוגת מורה', cls: 'ללא שמירה', pool: used };
+    saveSession();
+    renderExam();
+  }
+
+  function previewAnswerText(q) {
+    if (q.type === 'mc') return q.options[q.correct];
+    if (q.type === 'tf') return q.correct ? 'נכון' : 'לא נכון';
+    if (q.type === 'fill') return q.correct.map(function (alts) { return alts.join(' / '); }).join(' · ');
+    return q.pairs.map(function (p) { return p[0] + ' ← ' + p[1]; }).join(' · ');
+  }
+
+  function showPreviewResult(auto) {
+    var g = gradeExam(state.pool, state.answers);
+    var byId = {}; state.pool.forEach(function (q) { byId[q.qid] = q; });
+    var rows = state.questions.map(function (sq, i) {
+      var q = byId[sq.qid], part = g.detail[sq.qid].part, got = Math.round(q.points * part * 100) / 100;
+      var cls = part === 1 ? 'ok' : part > 0 ? 'part' : 'bad';
+      return '<li class="pv-row ' + cls + '"><div class="pv-top"><b>שאלה ' + (i + 1) + '</b><span>' + got + ' / ' + q.points + ' נק\'</span></div>' +
+        '<div class="pv-q">' + esc(q.text) + '</div>' +
+        (part === 1 ? '' : '<div class="pv-a">תשובה נכונה: ' + esc(previewAnswerText(q)) + '</div>') + '</li>';
+    }).join('');
+    $('resultName').textContent = 'תצוגת מורה · לא נשמר' + (auto ? ' · הזמן הסתיים' : '');
+    $('scoreNum').textContent = g.score;
+    $('scoreRing').style.setProperty('--p', g.score);
+    $('resultMsg').innerHTML = esc(g.earned + ' מתוך ' + g.total + ' נקודות') +
+      '<div class="pv-actions"><button type="button" class="btn gold" id="pvAgain">תצוגה חדשה (ערבוב מחדש)</button>' +
+      '<button type="button" class="btn ghost" id="pvClose">סגירה</button></div>' +
+      '<ol class="pv-list">' + rows + '</ol>';
+    $('pvAgain').onclick = function () { clearSession(); location.reload(); };
+    $('pvClose').onclick = function () { window.close(); };
   }
 
   function currentExam() { return exams.filter(function (x) { return x.id === $('exam').value; })[0]; }
@@ -308,6 +361,12 @@
     submitting = true;
     var btn = $('submitBtn'); btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> שולח…';
     hideError($('submitError'));
+    if (state.token === 'preview') {
+      clearInterval(timerId); window.onbeforeunload = null; $('examMeta').innerHTML = '';
+      showPreviewResult(auto); clearSession(); state = null;
+      btn.disabled = false; btn.textContent = 'הגשת המבחן'; submitting = false;
+      show('resultView'); return;
+    }
     ExamAPI.call('submitExam', { token: state.token, answers: state.answers }).then(function (res) {
       clearInterval(timerId);
       var name = state.name;
